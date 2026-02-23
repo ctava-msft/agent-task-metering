@@ -55,4 +55,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build Docker image
-        run: docker build -f infra/Dockerfile -t agent-task-metering:ci .
+        run: docker build -f src/Dockerfile -t agent-task-metering:ci .
