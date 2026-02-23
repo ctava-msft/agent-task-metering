@@ -172,12 +172,13 @@ class MarketplaceMeteringClient:
 
         # --- Guardrail: hourly cap ---
         if self._guardrail.hourly_cap > 0:
-            if self._hourly_count(subscription_ref, hk) >= self._guardrail.hourly_cap:
+            hourly_count = self._hourly_count(subscription_ref, hk)
+            if hourly_count >= self._guardrail.hourly_cap:
                 anomaly = AnomalyRecord(
                     subscription_ref=subscription_ref,
                     cap_type="hourly",
                     cap_value=self._guardrail.hourly_cap,
-                    actual_value=self._hourly_count(subscription_ref, hk),
+                    actual_value=hourly_count,
                     task_id=task_id,
                     correlation_id=cid,
                     timestamp=ts,
@@ -189,7 +190,7 @@ class MarketplaceMeteringClient:
                     subscription_ref=subscription_ref,
                     cap_type="hourly",
                     cap_value=self._guardrail.hourly_cap,
-                    actual=self._hourly_count(subscription_ref, hk),
+                    actual=hourly_count,
                     task_id=task_id,
                     review_needed=True,
                 )
@@ -197,12 +198,13 @@ class MarketplaceMeteringClient:
 
         # --- Guardrail: daily cap ---
         if self._guardrail.daily_cap > 0:
-            if self._daily_count(subscription_ref, dk) >= self._guardrail.daily_cap:
+            daily_count = self._daily_count(subscription_ref, dk)
+            if daily_count >= self._guardrail.daily_cap:
                 anomaly = AnomalyRecord(
                     subscription_ref=subscription_ref,
                     cap_type="daily",
                     cap_value=self._guardrail.daily_cap,
-                    actual_value=self._daily_count(subscription_ref, dk),
+                    actual_value=daily_count,
                     task_id=task_id,
                     correlation_id=cid,
                     timestamp=ts,
@@ -214,7 +216,7 @@ class MarketplaceMeteringClient:
                     subscription_ref=subscription_ref,
                     cap_type="daily",
                     cap_value=self._guardrail.daily_cap,
-                    actual=self._daily_count(subscription_ref, dk),
+                    actual=daily_count,
                     task_id=task_id,
                     review_needed=True,
                 )
