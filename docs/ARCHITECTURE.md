@@ -36,7 +36,7 @@ decide whether a completed task is billable:
 
 | Gate | Name | Required? | Description |
 |------|------|-----------|-------------|
-| 0 | Intent resolution | Optional | User intent was identified and resolved |
+| 0 | Intent resolution | Yes | User intent was identified and resolved |
 | 1 | Terminal success | Yes | Task reached a terminal success state |
 | 2 | Required outputs | Configurable | All configured output keys are present |
 | 3 | Output validation | Yes | Output values are non-null / non-empty |

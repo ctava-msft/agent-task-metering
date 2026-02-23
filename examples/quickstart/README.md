@@ -37,6 +37,7 @@ task is silently ignored.
 
 | Concept | Where |
 |---|---|
+| Intent resolution (required) | Each task provides `query` + `response` evidence |
 | Bill outcomes, not attempts | Failed task produces `billable_units = 0` |
 | Hourly aggregation | Three tasks → one event with `quantity = 3` |
 | Duplicate protection | Re-recording the same task returns `False` |

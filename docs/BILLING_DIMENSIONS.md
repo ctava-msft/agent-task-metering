@@ -17,8 +17,7 @@ This document defines the Marketplace billing dimension used by
 A task increments the `task_completed` counter **only** when it passes the
 full adherence contract:
 
-1. **Intent handled** — the agent resolved the user's intent (Gate 0, when
-   enabled).
+1. **Intent handled** — the agent resolved the user's intent (Gate 0).
 2. **Adhered** — the task passed all adherence gates (Gates 1-4: terminal
    success, required outputs, output validation, optional approval).
 

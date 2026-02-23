@@ -23,7 +23,9 @@ PLAN_ID = "basic"
 HOUR = datetime(2025, 6, 1, 14, 0, 0, tzinfo=timezone.utc)
 
 # ── 1. Set up evaluator and metering client ───────────────────────────
-evaluator = TaskAdherenceEvaluator(config=ContractConfig())
+evaluator = TaskAdherenceEvaluator(
+    config=ContractConfig(require_intent_resolution=True),
+)
 client = MarketplaceMeteringClient(dry_run=True, plan_id=PLAN_ID)
 
 # ── 2. Simulate agent task completions ────────────────────────────────
@@ -31,22 +33,30 @@ tasks = [
     {
         "task_id": "task-001",
         "agent_id": "agent-alpha",
+        "query": "Summarize the Q3 report",
+        "response": "Here is the summary of the Q3 report.",
         "outputs": {"status": "completed", "result": "Summary generated"},
     },
     {
         "task_id": "task-002",
         "agent_id": "agent-alpha",
+        "query": "Create a sales report",
+        "response": "The sales report has been created.",
         "outputs": {"status": "completed", "result": "Report created"},
     },
     {
         "task_id": "task-003",
         "agent_id": "agent-beta",
+        "query": "Analyze last month's data",
+        "response": "Data analysis complete.",
         "outputs": {"status": "completed", "result": "Data analyzed"},
     },
     # This task FAILS the adherence contract (empty output value).
     {
         "task_id": "task-004",
         "agent_id": "agent-beta",
+        "query": "Generate a chart",
+        "response": "Chart generation attempted.",
         "outputs": {"status": "completed", "result": ""},
     },
 ]
@@ -62,7 +72,11 @@ for t in tasks:
         task_id=t["task_id"],
         agent_id=t["agent_id"],
         subscription_ref=SUBSCRIPTION,
-        evidence=Evidence(outputs=t["outputs"]),
+        evidence=Evidence(
+            outputs=t["outputs"],
+            query=t.get("query"),
+            response=t.get("response"),
+        ),
     )
     result = evaluator.evaluate(request)
     status = "✅ BILLABLE" if result.billable_units else "❌ NOT BILLABLE"
