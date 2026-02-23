@@ -13,7 +13,7 @@ Key Marketplace constraints enforced:
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from typing import Callable, Dict, List, Optional, Set, Tuple
 
@@ -58,9 +58,7 @@ class MarketplaceMeteringClient:
         self._submit_callback = submit_callback
         self._plan_id = plan_id
         # {(subscription_ref, hour_key): set_of_task_ids}
-        self._completions: Dict[Tuple[str, str], Set[str]] = field(
-            default_factory=dict
-        ) if False else {}
+        self._completions: Dict[Tuple[str, str], Set[str]] = {}
         # track submitted hour windows for idempotency
         self._submitted: Set[Tuple[str, str]] = set()
 
