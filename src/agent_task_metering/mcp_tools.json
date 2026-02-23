@@ -1,0 +1,84 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Agent Task Metering",
+  "name_for_model": "agent_task_metering",
+  "description_for_human": "Evaluate agent intent handling and task adherence, and record billable usage units.",
+  "description_for_model": "Service for evaluating whether an AI agent correctly handled user intent and adhered to task requirements. Use evaluate_and_meter_task for a single combined call that evaluates and records metering.",
+  "api": {
+    "type": "openapi",
+    "url": "/openapi.json"
+  },
+  "tools": [
+    {
+      "name": "evaluate_intent_handling",
+      "description": "Evaluate whether the agent correctly identified and resolved the user's intent (Gate 0). Returns intent_handled boolean and reason.",
+      "parameters": {
+        "type": "object",
+        "required": ["task_id", "agent_id", "subscription_ref"],
+        "properties": {
+          "task_id": { "type": "string", "description": "Unique task identifier." },
+          "agent_id": { "type": "string", "description": "Agent identifier." },
+          "subscription_ref": { "type": "string", "description": "Marketplace subscription reference." },
+          "correlation_id": { "type": "string", "description": "Optional correlation ID for traceability." },
+          "evidence": {
+            "type": "object",
+            "description": "Evidence payload with outputs, traces, scores, query, and response."
+          }
+        }
+      },
+      "endpoint": { "method": "POST", "path": "/evaluate_intent_handling" }
+    },
+    {
+      "name": "evaluate_task_adherence",
+      "description": "Evaluate whether a task passed all adherence gates (terminal success, required outputs, output validation, approval). Returns adhered boolean and reason_codes.",
+      "parameters": {
+        "type": "object",
+        "required": ["task_id", "agent_id", "subscription_ref"],
+        "properties": {
+          "task_id": { "type": "string", "description": "Unique task identifier." },
+          "agent_id": { "type": "string", "description": "Agent identifier." },
+          "subscription_ref": { "type": "string", "description": "Marketplace subscription reference." },
+          "correlation_id": { "type": "string", "description": "Optional correlation ID for traceability." },
+          "evidence": {
+            "type": "object",
+            "description": "Evidence payload with outputs, traces, scores."
+          }
+        }
+      },
+      "endpoint": { "method": "POST", "path": "/evaluate_task_adherence" }
+    },
+    {
+      "name": "record_task_completed",
+      "description": "Record a single task completion for marketplace metering. Idempotent within the same hour window.",
+      "parameters": {
+        "type": "object",
+        "required": ["task_id", "subscription_ref"],
+        "properties": {
+          "task_id": { "type": "string", "description": "Unique task identifier." },
+          "subscription_ref": { "type": "string", "description": "Marketplace subscription reference." },
+          "correlation_id": { "type": "string", "description": "Optional correlation ID for traceability." }
+        }
+      },
+      "endpoint": { "method": "POST", "path": "/record_task_completed" }
+    },
+    {
+      "name": "evaluate_and_meter_task",
+      "description": "Recommended. Evaluate intent handling and task adherence in one call. If both pass (billable_units=1), automatically records a task_completed metering event. Returns the full evaluation result plus a recorded boolean.",
+      "parameters": {
+        "type": "object",
+        "required": ["task_id", "agent_id", "subscription_ref"],
+        "properties": {
+          "task_id": { "type": "string", "description": "Unique task identifier." },
+          "agent_id": { "type": "string", "description": "Agent identifier." },
+          "subscription_ref": { "type": "string", "description": "Marketplace subscription reference." },
+          "correlation_id": { "type": "string", "description": "Optional correlation ID for traceability." },
+          "evidence": {
+            "type": "object",
+            "description": "Evidence payload with outputs, traces, scores, query, and response."
+          }
+        }
+      },
+      "endpoint": { "method": "POST", "path": "/evaluate_and_meter_task" }
+    }
+  ]
+}

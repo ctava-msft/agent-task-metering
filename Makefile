@@ -16,7 +16,7 @@ test:
 	$(PYTHON) -m pytest tests/ --cov=agent_task_metering --cov-report=term-missing
 
 build:
-	docker build -f infra/Dockerfile -t $(IMAGE_NAME):latest .
+	docker build -f src/Dockerfile -t $(IMAGE_NAME):latest .
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true

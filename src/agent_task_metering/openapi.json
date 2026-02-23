@@ -1,0 +1,351 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Agent Task Metering API",
+    "version": "0.1.0",
+    "description": "Evaluate agent intent handling, task adherence, and record billable usage units."
+  },
+  "paths": {
+    "/evaluate": {
+      "post": {
+        "operationId": "evaluate",
+        "summary": "Evaluate a task (intent + adherence) and return the billable outcome.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/EvaluationRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Evaluation result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/EvaluationResult" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/evaluate_intent_handling": {
+      "post": {
+        "operationId": "evaluate_intent_handling",
+        "summary": "Evaluate intent resolution only (Gate 0).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/EvaluationRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Intent handling result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/IntentHandlingResult" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/evaluate_task_adherence": {
+      "post": {
+        "operationId": "evaluate_task_adherence",
+        "summary": "Evaluate task adherence gates only (Gates 1-4).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/EvaluationRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task adherence result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TaskAdherenceResult" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/record_task_completed": {
+      "post": {
+        "operationId": "record_task_completed",
+        "summary": "Record a task completion for marketplace metering.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RecordTaskRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recording result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RecordTaskResult" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/evaluate_and_meter_task": {
+      "post": {
+        "operationId": "evaluate_and_meter_task",
+        "summary": "Evaluate intent + adherence and record a billable usage unit if passed (recommended).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/EvaluationRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Evaluation and metering result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/EvaluateAndMeterResult" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/audit/{correlation_id}": {
+      "get": {
+        "operationId": "get_audit_record",
+        "summary": "Retrieve an audit record by its correlation ID.",
+        "parameters": [
+          {
+            "name": "correlation_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit record",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuditRecord" }
+              }
+            }
+          },
+          "404": {
+            "description": "Audit record not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health",
+        "summary": "Liveness probe.",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Evidence": {
+        "type": "object",
+        "properties": {
+          "outputs": {
+            "type": "object",
+            "description": "Task outputs to evaluate."
+          },
+          "traces": {
+            "type": "array",
+            "items": { "type": "object" },
+            "description": "Execution traces for auditability."
+          },
+          "scores": {
+            "type": "object",
+            "additionalProperties": { "type": "number" },
+            "description": "Numeric scores (e.g. intent_resolution)."
+          },
+          "query": {
+            "type": "string",
+            "description": "Original user query (used by intent resolution gate)."
+          },
+          "response": {
+            "type": "string",
+            "description": "Agent response to the query (used by intent resolution gate)."
+          }
+        }
+      },
+      "EvaluationRequest": {
+        "type": "object",
+        "required": ["task_id", "agent_id", "subscription_ref"],
+        "properties": {
+          "task_id": { "type": "string", "description": "Unique task identifier." },
+          "agent_id": { "type": "string", "description": "Identifier of the agent." },
+          "subscription_ref": { "type": "string", "description": "Marketplace subscription reference." },
+          "correlation_id": { "type": "string", "description": "Optional caller-supplied correlation ID for traceability." },
+          "evidence": { "$ref": "#/components/schemas/Evidence" }
+        }
+      },
+      "RecordTaskRequest": {
+        "type": "object",
+        "required": ["task_id", "subscription_ref"],
+        "properties": {
+          "task_id": { "type": "string" },
+          "subscription_ref": { "type": "string" },
+          "correlation_id": { "type": "string", "description": "Optional caller-supplied correlation ID." }
+        }
+      },
+      "EvaluationResult": {
+        "type": "object",
+        "properties": {
+          "correlation_id": { "type": "string" },
+          "intent_handled": { "type": "boolean" },
+          "adhered": { "type": "boolean" },
+          "billable_units": { "type": "integer" },
+          "reason_codes": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "IntentHandlingResult": {
+        "type": "object",
+        "properties": {
+          "correlation_id": { "type": "string" },
+          "intent_handled": { "type": "boolean" },
+          "reason": { "type": "string" }
+        }
+      },
+      "TaskAdherenceResult": {
+        "type": "object",
+        "properties": {
+          "correlation_id": { "type": "string" },
+          "adhered": { "type": "boolean" },
+          "reason_codes": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "RecordTaskResult": {
+        "type": "object",
+        "properties": {
+          "correlation_id": { "type": "string" },
+          "recorded": { "type": "boolean" }
+        }
+      },
+      "EvaluateAndMeterResult": {
+        "type": "object",
+        "properties": {
+          "correlation_id": { "type": "string" },
+          "intent_handled": { "type": "boolean" },
+          "adhered": { "type": "boolean" },
+          "billable_units": { "type": "integer" },
+          "reason_codes": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "recorded": { "type": "boolean" }
+        }
+      },
+      "AuditRecord": {
+        "type": "object",
+        "properties": {
+          "correlation_id": { "type": "string" },
+          "task_id": { "type": "string" },
+          "agent_id": { "type": "string" },
+          "subscription_ref": { "type": "string" },
+          "evidence": { "type": "object" },
+          "intent_handled": { "type": "boolean" },
+          "adhered": { "type": "boolean" },
+          "billable_units": { "type": "integer" },
+          "reason_codes": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "timestamp": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" }
+        }
+      }
+    }
+  }
+}

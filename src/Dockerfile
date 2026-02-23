@@ -7,4 +7,6 @@ COPY src/ ./src/
 
 RUN pip install --no-cache-dir -e .
 
-CMD ["python", "-c", "from agent_task_metering import TaskMeter; print('agent-task-metering ready')"]
+EXPOSE 8080
+
+CMD ["python", "-m", "agent_task_metering.evaluation.api", "--port", "8080"]
