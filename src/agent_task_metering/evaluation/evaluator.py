@@ -10,9 +10,12 @@ from __future__ import annotations
 import uuid
 from dataclasses import asdict
 
+from ..audit_logger import get_audit_logger
 from .audit import AuditStore
 from .contract import ContractConfig, TaskAdherenceContract
 from .models import AuditRecord, EvaluationRequest, EvaluationResult
+
+_log = get_audit_logger()
 
 
 class TaskAdherenceEvaluator:
@@ -64,6 +67,18 @@ class TaskAdherenceEvaluator:
             billable_units=billable_units,
             reason_codes=reason_codes,
             correlation_id=correlation_id,
+        )
+
+        _log.log_event(
+            "evaluation_decision",
+            correlation_id=correlation_id,
+            task_id=request.task_id,
+            agent_id=request.agent_id,
+            subscription_ref=request.subscription_ref,
+            intent_handled=intent_handled,
+            adhered=adhered,
+            billable_units=billable_units,
+            reason_codes=reason_codes,
         )
 
         # Persist audit trail

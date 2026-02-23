@@ -23,10 +23,13 @@ import uuid
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any, Dict, Optional
 
+from ..audit_logger import get_audit_logger
 from ..metering.client import MarketplaceMeteringClient
 from .contract import ContractConfig
 from .evaluator import TaskAdherenceEvaluator
 from .models import EvaluationRequest, Evidence
+
+_log = get_audit_logger()
 
 # Module-level evaluator (configured on server start).
 _evaluator: Optional[TaskAdherenceEvaluator] = None
@@ -185,6 +188,15 @@ class _Handler(BaseHTTPRequestHandler):
         newly_recorded = client.record_task_completed(
             subscription_ref=raw["subscription_ref"],
             task_id=raw["task_id"],
+            correlation_id=correlation_id,
+        )
+
+        _log.log_event(
+            "record_task_completed",
+            correlation_id=correlation_id,
+            subscription_ref=raw["subscription_ref"],
+            task_id=raw["task_id"],
+            recorded=newly_recorded,
         )
 
         self._send_json(200, {
@@ -219,7 +231,17 @@ class _Handler(BaseHTTPRequestHandler):
             recorded = client.record_task_completed(
                 subscription_ref=raw["subscription_ref"],
                 task_id=raw["task_id"],
+                correlation_id=correlation_id,
             )
+
+        _log.log_event(
+            "evaluate_and_meter_task",
+            correlation_id=correlation_id,
+            task_id=raw["task_id"],
+            subscription_ref=raw["subscription_ref"],
+            billable_units=result.billable_units,
+            recorded=recorded,
+        )
 
         body = result.to_dict()
         body["correlation_id"] = correlation_id
