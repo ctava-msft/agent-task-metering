@@ -41,7 +41,7 @@ tasks = [
     {
         "task_id": "task-003",
         "agent_id": "agent-beta",
-        "outputs": {"status": "completed", "result": "Data analysed"},
+        "outputs": {"status": "completed", "result": "Data analyzed"},
     },
     # This task FAILS the adherence contract (empty output value).
     {
