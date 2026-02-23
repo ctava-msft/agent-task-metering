@@ -16,7 +16,6 @@ summarizing token and task-level usage metrics produced by AI agents.
 .
 ├── src/agent_task_metering/   # Library source
 ├── tests/                     # Unit tests (pytest)
-├── infra/                     # Dockerfile and infrastructure files
 ├── docs/                      # Documentation
 ├── examples/                  # Usage examples
 ├── .devcontainer/             # VS Code Dev Container config
@@ -71,7 +70,22 @@ meter.record("task-001", "my-agent", "chat", input_tokens=512, output_tokens=128
 print(meter.summary())
 ```
 
-See [`examples/basic_usage.py`](examples/basic_usage.py) for more.
+See [`examples/basic_usage.py`](examples/basic_usage.py) for more, or run the
+full end-to-end demo:
+
+```bash
+python examples/quickstart/run_quickstart.py
+```
+
+See [`examples/quickstart/README.md`](examples/quickstart/README.md) for details.
+
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md) — how this repo pairs with an Azure Agents Control Plane
+- [Billing Dimensions](docs/BILLING_DIMENSIONS.md) — what is billable, hourly aggregation, dispute-resistant semantics
+- [Audit Logging](docs/audit-logging.md) — structured logging and billing traceability
+- [Marketplace Packaging Checklist](docs/MARKETPLACE_CHECKLIST.md) — steps to publish a Marketplace offer
+- [Reuse Documentation](docs/REUSE.md) — which patterns are reused from Microsoft references
 
 ## Contributing
 
@@ -85,3 +99,9 @@ Please see [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
 ## License
 
 [MIT](LICENSE) © Microsoft Corporation
+
+This repo reuses metering patterns from Microsoft's
+[Metered Billing Accelerator](https://github.com/microsoft/metered-billing-accelerator)
+and
+[commercial-marketplace-solutions](https://github.com/microsoft/commercial-marketplace-solutions)
+reference implementations.
