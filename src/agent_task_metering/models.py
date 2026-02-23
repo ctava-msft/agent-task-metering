@@ -1,7 +1,7 @@
 """Data models for agent task metering."""
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 
@@ -12,7 +12,7 @@ class TaskRecord:
     task_id: str
     agent_id: str
     task_type: str
-    start_time: datetime = field(default_factory=lambda: datetime.now(UTC))
+    start_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     end_time: Optional[datetime] = None
     input_tokens: int = 0
     output_tokens: int = 0
