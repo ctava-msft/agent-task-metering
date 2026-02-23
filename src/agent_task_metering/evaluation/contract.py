@@ -166,3 +166,32 @@ class TaskAdherenceContract:
         adhered = all(passed for passed, _ in adherence_gates)
         reason_codes = [intent_gate[1]] + [code for _, code in adherence_gates]
         return intent_handled, adhered, reason_codes
+
+    def evaluate_intent(self, evidence: Evidence) -> Tuple[bool, str]:
+        """Evaluate only the intent resolution gate (Gate 0).
+
+        Returns
+        -------
+        tuple[bool, str]
+            ``(intent_handled, reason)``
+        """
+        return self._gate_intent_resolution(evidence)
+
+    def evaluate_adherence(self, evidence: Evidence) -> Tuple[bool, List[str]]:
+        """Evaluate only the task adherence gates (Gates 1-4).
+
+        Returns
+        -------
+        tuple[bool, list[str]]
+            ``(adhered, reason_codes)``
+        """
+        outputs = evidence.outputs
+        gates = [
+            self._gate_terminal_success(outputs),
+            self._gate_required_outputs(outputs),
+            self._gate_output_validation(outputs),
+            self._gate_approval(outputs),
+        ]
+        adhered = all(passed for passed, _ in gates)
+        reason_codes = [code for _, code in gates]
+        return adhered, reason_codes

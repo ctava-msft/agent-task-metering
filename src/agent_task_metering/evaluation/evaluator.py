@@ -87,6 +87,11 @@ class TaskAdherenceEvaluator:
     # ------------------------------------------------------------------
 
     @property
+    def contract(self) -> TaskAdherenceContract:
+        """Access the underlying adherence contract."""
+        return self._contract
+
+    @property
     def audit_store(self) -> AuditStore:
         """Access the underlying audit store (read-only)."""
         return self._audit_store
