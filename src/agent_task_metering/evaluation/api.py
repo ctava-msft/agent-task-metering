@@ -24,7 +24,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any, Dict, Optional
 
 from ..metering.client import MarketplaceMeteringClient
-from .contract import ContractConfig, TaskAdherenceContract
+from .contract import ContractConfig
 from .evaluator import TaskAdherenceEvaluator
 from .models import EvaluationRequest, Evidence
 
@@ -144,8 +144,7 @@ class _Handler(BaseHTTPRequestHandler):
 
         correlation_id = raw.get("correlation_id") or uuid.uuid4().hex
         evidence = _parse_evidence(raw)
-        contract = TaskAdherenceContract(_get_evaluator()._contract._config)
-        intent_handled, reason = contract._gate_intent_resolution(evidence)
+        intent_handled, reason = _get_evaluator().contract.evaluate_intent(evidence)
 
         self._send_json(200, {
             "correlation_id": correlation_id,
@@ -164,17 +163,7 @@ class _Handler(BaseHTTPRequestHandler):
 
         correlation_id = raw.get("correlation_id") or uuid.uuid4().hex
         evidence = _parse_evidence(raw)
-        contract = TaskAdherenceContract(_get_evaluator()._contract._config)
-
-        outputs = evidence.outputs
-        gates = [
-            contract._gate_terminal_success(outputs),
-            contract._gate_required_outputs(outputs),
-            contract._gate_output_validation(outputs),
-            contract._gate_approval(outputs),
-        ]
-        adhered = all(passed for passed, _ in gates)
-        reason_codes = [code for _, code in gates]
+        adhered, reason_codes = _get_evaluator().contract.evaluate_adherence(evidence)
 
         self._send_json(200, {
             "correlation_id": correlation_id,
