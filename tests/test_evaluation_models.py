@@ -13,6 +13,8 @@ def test_evidence_defaults():
     assert ev.outputs == {}
     assert ev.traces == []
     assert ev.scores == {}
+    assert ev.query is None
+    assert ev.response is None
 
 
 def test_evidence_with_data():
@@ -20,10 +22,14 @@ def test_evidence_with_data():
         outputs={"status": "completed"},
         traces=[{"step": 1}],
         scores={"quality": 0.9},
+        query="What time is it?",
+        response="It is 3pm.",
     )
     assert ev.outputs["status"] == "completed"
     assert len(ev.traces) == 1
     assert ev.scores["quality"] == 0.9
+    assert ev.query == "What time is it?"
+    assert ev.response == "It is 3pm."
 
 
 def test_evaluation_request_fields():
@@ -46,12 +52,14 @@ def test_evaluation_request_default_evidence():
 
 def test_evaluation_result_to_dict():
     result = EvaluationResult(
+        intent_handled=True,
         adhered=True,
         billable_units=1,
         reason_codes=["terminal_success:passed"],
         correlation_id="abc123",
     )
     d = result.to_dict()
+    assert d["intent_handled"] is True
     assert d["adhered"] is True
     assert d["billable_units"] == 1
     assert d["correlation_id"] == "abc123"
@@ -65,6 +73,7 @@ def test_audit_record_to_dict():
         agent_id="a1",
         subscription_ref="sub-1",
         evidence={"outputs": {"status": "completed"}},
+        intent_handled=True,
         adhered=True,
         billable_units=1,
         reason_codes=["terminal_success:passed"],
@@ -72,6 +81,7 @@ def test_audit_record_to_dict():
     d = audit.to_dict()
     assert d["correlation_id"] == "abc123"
     assert d["task_id"] == "t1"
+    assert d["intent_handled"] is True
     assert "timestamp" in d
     # timestamp is serialised as ISO string
     assert isinstance(d["timestamp"], str)
@@ -84,6 +94,7 @@ def test_audit_record_default_metadata():
         agent_id="a1",
         subscription_ref="sub-1",
         evidence={},
+        intent_handled=False,
         adhered=False,
         billable_units=0,
         reason_codes=[],

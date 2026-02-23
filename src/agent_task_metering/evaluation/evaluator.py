@@ -1,7 +1,8 @@
 """TaskAdherenceEvaluator — main entry-point for adherence evaluation.
 
-Orchestrates the contract gates, generates a correlation ID, emits an
-audit record, and returns a deterministic :class:`EvaluationResult`.
+Orchestrates the contract gates (including intent resolution), generates a
+correlation ID, emits an audit record, and returns a deterministic
+:class:`EvaluationResult`.
 """
 
 from __future__ import annotations
@@ -42,16 +43,23 @@ class TaskAdherenceEvaluator:
         """Evaluate *request* and return an :class:`EvaluationResult`.
 
         The method is **deterministic**: the same inputs always produce
-        the same ``adhered`` / ``billable_units`` outcome.  A unique
-        ``correlation_id`` is generated for each invocation and an
-        :class:`AuditRecord` is persisted automatically.
+        the same ``intent_handled`` / ``adhered`` / ``billable_units``
+        outcome.  A unique ``correlation_id`` is generated for each
+        invocation and an :class:`AuditRecord` is persisted automatically.
+
+        Billing requires **both** intent resolution and task adherence
+        gates to pass: ``billable_units = 1`` only when
+        ``intent_handled and adhered``.
         """
         correlation_id = uuid.uuid4().hex
 
-        adhered, reason_codes = self._contract.evaluate(request.evidence)
-        billable_units = 1 if adhered else 0
+        intent_handled, adhered, reason_codes = self._contract.evaluate(
+            request.evidence
+        )
+        billable_units = 1 if intent_handled and adhered else 0
 
         result = EvaluationResult(
+            intent_handled=intent_handled,
             adhered=adhered,
             billable_units=billable_units,
             reason_codes=reason_codes,
@@ -65,6 +73,7 @@ class TaskAdherenceEvaluator:
             agent_id=request.agent_id,
             subscription_ref=request.subscription_ref,
             evidence=asdict(request.evidence),
+            intent_handled=intent_handled,
             adhered=adhered,
             billable_units=billable_units,
             reason_codes=reason_codes,

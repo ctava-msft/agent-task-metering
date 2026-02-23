@@ -80,6 +80,8 @@ class _Handler(BaseHTTPRequestHandler):
             outputs=evidence_raw.get("outputs", {}),
             traces=evidence_raw.get("traces", []),
             scores=evidence_raw.get("scores", {}),
+            query=evidence_raw.get("query"),
+            response=evidence_raw.get("response"),
         )
 
         request = EvaluationRequest(

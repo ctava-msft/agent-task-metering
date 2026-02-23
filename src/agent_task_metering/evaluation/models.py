@@ -17,11 +17,17 @@ class Evidence:
         Execution traces for auditability.
     scores : dict[str, float]
         Optional numeric scores (e.g. from AI evaluation SDK).
+    query : str, optional
+        Original user query / intent (used by intent resolution gate).
+    response : str, optional
+        Agent response to the query (used by intent resolution gate).
     """
 
     outputs: Dict[str, Any] = field(default_factory=dict)
     traces: List[Dict[str, Any]] = field(default_factory=list)
     scores: Dict[str, float] = field(default_factory=dict)
+    query: Optional[str] = None
+    response: Optional[str] = None
 
 
 @dataclass
@@ -52,16 +58,19 @@ class EvaluationResult:
 
     Parameters
     ----------
+    intent_handled : bool
+        Whether the user intent was resolved by the agent.
     adhered : bool
         Whether the task met all adherence contract gates.
     billable_units : int
-        ``1`` when adhered, ``0`` otherwise.
+        ``1`` when both *intent_handled* and *adhered*, ``0`` otherwise.
     reason_codes : list[str]
         Human-readable codes describing each gate outcome.
     correlation_id : str
         Unique identifier for this evaluation (for audit trail).
     """
 
+    intent_handled: bool
     adhered: bool
     billable_units: int
     reason_codes: List[str]
@@ -84,6 +93,7 @@ class AuditRecord:
     agent_id: str
     subscription_ref: str
     evidence: Dict[str, Any]
+    intent_handled: bool
     adhered: bool
     billable_units: int
     reason_codes: List[str]

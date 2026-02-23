@@ -47,7 +47,7 @@ def _get_json(port: int, path: str) -> tuple:
 
 
 def test_evaluate_passing_payload(server):
-    """Passing evidence → adhered=True, billable_units=1."""
+    """Passing evidence → intent_handled=True, adhered=True, billable_units=1."""
     status, body = _post_json(server, "/evaluate", {
         "task_id": "t1",
         "agent_id": "a1",
@@ -58,6 +58,7 @@ def test_evaluate_passing_payload(server):
         },
     })
     assert status == 200
+    assert body["intent_handled"] is True
     assert body["adhered"] is True
     assert body["billable_units"] == 1
     assert body["correlation_id"]
@@ -151,3 +152,24 @@ def test_unknown_post_route(server):
 def test_unknown_get_route(server):
     status, body = _get_json(server, "/unknown")
     assert status == 404
+
+
+# ---- Intent resolution via API -------------------------------------------
+
+
+def test_evaluate_with_query_response(server):
+    """Evidence with query+response is parsed and returned."""
+    status, body = _post_json(server, "/evaluate", {
+        "task_id": "t-intent",
+        "agent_id": "a1",
+        "subscription_ref": "sub-1",
+        "evidence": {
+            "outputs": {"terminal_success": True},
+            "query": "What are the hours?",
+            "response": "Open 9-5.",
+        },
+    })
+    assert status == 200
+    assert body["intent_handled"] is True
+    assert body["adhered"] is True
+    assert body["billable_units"] == 1

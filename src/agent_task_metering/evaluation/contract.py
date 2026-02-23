@@ -1,8 +1,10 @@
 """Task Intent Adherence Contract — deterministic gate evaluation.
 
-Implements four sequential gates that an agent task must pass in order to be
+Implements five sequential gates that an agent task must pass in order to be
 considered *adhered* and therefore billable:
 
+0. **Intent resolution** (optional) — the evidence must indicate that the
+   user's intent was identified and resolved.
 1. **Terminal success** — the evidence must indicate the task reached a
    terminal success state.
 2. **Required outputs** — a configurable set of output keys must be present.
@@ -32,10 +34,17 @@ class ContractConfig:
         Output keys that *must* be present for the required-outputs gate.
     require_approval : bool
         When *True*, the approval gate is active.
+    require_intent_resolution : bool
+        When *True*, the intent resolution gate is active.
+    intent_resolution_threshold : float
+        Minimum ``scores["intent_resolution"]`` value to pass the intent
+        resolution gate (matches Azure AI Evaluation SDK default of 3).
     """
 
     required_output_keys: List[str] = field(default_factory=list)
     require_approval: bool = False
+    require_intent_resolution: bool = False
+    intent_resolution_threshold: float = 3.0
 
 
 class TaskAdherenceContract:
@@ -45,7 +54,7 @@ class TaskAdherenceContract:
     ----------
     config : ContractConfig, optional
         Contract configuration.  Defaults to the permissive baseline
-        (no required keys, no approval gate).
+        (no required keys, no approval gate, no intent resolution gate).
     """
 
     def __init__(self, config: ContractConfig | None = None) -> None:
@@ -54,6 +63,35 @@ class TaskAdherenceContract:
     # ------------------------------------------------------------------
     # Individual gates
     # ------------------------------------------------------------------
+
+    def _gate_intent_resolution(self, evidence: Evidence) -> Tuple[bool, str]:
+        """Gate 0 (optional) — user intent must be resolved.
+
+        Passes when **any** of the following hold:
+
+        * ``evidence.scores["intent_resolution"]`` ≥ threshold
+        * ``evidence.outputs["intent_handled"]`` is truthy
+        * Both ``evidence.query`` and ``evidence.response`` are non-empty
+        """
+        if not self._config.require_intent_resolution:
+            return True, "intent_resolution:skipped"
+
+        # Score from Azure AI Evaluation SDK
+        score = evidence.scores.get("intent_resolution")
+        if score is not None:
+            if score >= self._config.intent_resolution_threshold:
+                return True, "intent_resolution:passed"
+            return False, f"intent_resolution:score_below_threshold={score}"
+
+        # Explicit flag
+        if evidence.outputs.get("intent_handled"):
+            return True, "intent_resolution:passed"
+
+        # Query + response presence
+        if evidence.query and evidence.response:
+            return True, "intent_resolution:passed"
+
+        return False, "intent_resolution:failed"
 
     @staticmethod
     def _gate_terminal_success(outputs: Dict[str, Any]) -> Tuple[bool, str]:
@@ -103,20 +141,28 @@ class TaskAdherenceContract:
     # Public evaluation entry-point
     # ------------------------------------------------------------------
 
-    def evaluate(self, evidence: Evidence) -> Tuple[bool, List[str]]:
-        """Run all gates against *evidence* and return ``(adhered, reason_codes)``.
+    def evaluate(self, evidence: Evidence) -> Tuple[bool, bool, List[str]]:
+        """Run all gates against *evidence*.
 
-        All gates execute regardless of earlier failures so that every
-        reason code is collected for audit purposes.
+        Returns
+        -------
+        tuple[bool, bool, list[str]]
+            ``(intent_handled, adhered, reason_codes)`` where
+            *intent_handled* reflects gate 0 and *adhered* reflects
+            gates 1-4.  All gates execute regardless of earlier failures
+            so that every reason code is collected for audit purposes.
         """
+        intent_gate = self._gate_intent_resolution(evidence)
+
         outputs = evidence.outputs
-        gates = [
+        adherence_gates = [
             self._gate_terminal_success(outputs),
             self._gate_required_outputs(outputs),
             self._gate_output_validation(outputs),
             self._gate_approval(outputs),
         ]
 
-        adhered = all(passed for passed, _ in gates)
-        reason_codes = [code for _, code in gates]
-        return adhered, reason_codes
+        intent_handled = intent_gate[0]
+        adhered = all(passed for passed, _ in adherence_gates)
+        reason_codes = [intent_gate[1]] + [code for _, code in adherence_gates]
+        return intent_handled, adhered, reason_codes
