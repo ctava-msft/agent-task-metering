@@ -8,7 +8,8 @@
 ## Overview
 
 `agent-task-metering` is a lightweight Python library for evaluating task intent
-handling and task adherence produced by AI agents.
+handling and task adherence produced by AI agents for the purpose of metering
+the successful completion of tasks.
 
 ![Architecture Diagram](diagram.svg)
 
