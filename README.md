@@ -23,7 +23,7 @@
 
 ## 🌍 Problem Statement
 
-AI agents are increasingly used to automate complex tasks — from summarizing reports and answering support tickets to orchestrating multi-step workflows. As organizations deploy these agents at scale through the **Azure Marketplace**, a critical challenge emerges:
+AI agents are increasingly used to automate complex tasks — from summarizing reports and answering support tickets to orchestrating multi-step workflows. As organizations deploy these agents at scale through the Azure, a critical challenge emerges:
 
 **How do you fairly and accurately bill customers for the work AI agents perform?**
 
